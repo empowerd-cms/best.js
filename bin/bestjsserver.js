@@ -84,6 +84,7 @@ const folderPath = path.join(__dirname, 'default-files');
 // Read file contents
 const entryClient = fs.readFileSync(path.join(folderPath, 'entry-client.jsx'), 'utf-8');
 const entryServer = fs.readFileSync(path.join(folderPath, 'entry-server.jsx'), 'utf-8');
+const indexHtml= fs.readFileSync(path.join(folderPath, 'index.html'), 'utf-8');
 
 
   // entry-server.jsx
@@ -127,19 +128,7 @@ export default App;
   // index.html (unchanged)
   const indexFile = path.join(cwd, 'index.html');
   if (!fs.existsSync(indexFile)) {
-    fs.writeFileSync(indexFile, `<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Simple React SSR Vite</title>
-  </head>
-  <body>
-    <div id="app"><!--outlet--></div>
-    <script type="module" src="/src/entry-client.jsx"></script>
-  </body>
-</html>
-`);
+    fs.writeFileSync(indexFile, indexHtml);
   }
 
   // vite.config.js (unchanged)

@@ -3,19 +3,14 @@ import path from 'path';
 import express from 'express';
 import { createServer as createViteServer } from 'vite';
 import { loadModules } from '../utils/loadModules.js';
-
-
-
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-
 export async function startDevServer({ root, srcDir, port }) {
   const app = express();
 
-  // ✅ Add body parsers so req.body works
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
@@ -32,15 +27,20 @@ export async function startDevServer({ root, srcDir, port }) {
     try {
       let template = fs.readFileSync(path.join(root, 'index.html'), 'utf-8');
       template = await vite.transformIndexHtml(url, template);
-      
-      
-const { render } = await vite.ssrLoadModule('/src/entry-server.jsx');
 
+      const { render } = await vite.ssrLoadModule('/src/entry-server.jsx');
 
-      const appHtml = await render(page);
+      // Example of global props
+      const extraProps = { now: new Date().toISOString() };
 
-      const html = template.replace('<!--outlet-->', appHtml);
-      res.status(200).set({ 'Content-Type': 'text/html' }).end(html);
+      // Call updated render() that returns { html, title }
+      const { html: appHtml, title } = await render(page, extraProps);
+
+      // Inject app HTML and title
+      let finalHtml = template.replace('<!--outlet-->', appHtml);
+      finalHtml = finalHtml.replace('<title>My App</title>', `<title>${title}</title>`);
+
+      res.status(200).set({ 'Content-Type': 'text/html' }).end(finalHtml);
     } catch (err) {
       vite.ssrFixStacktrace(err);
       console.error(err);
@@ -56,10 +56,8 @@ const { render } = await vite.ssrLoadModule('/src/entry-server.jsx');
 export async function startProdServer({ root, srcDir, port }) {
   const app = express();
 
-  // ✅ Add body parsers so req.body works
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
-
   app.use(express.static(path.join(root, 'dist/client'), { index: false }));
 
   await loadModules(path.join(root, srcDir, 'lib'), app);
@@ -73,10 +71,15 @@ export async function startProdServer({ root, srcDir, port }) {
       const template = fs.readFileSync(path.join(root, 'dist/client/index.html'), 'utf-8');
       const { render } = await import(path.join(root, 'dist/server/entry-server.js'));
 
-      const appHtml = await render(page);
-      const html = template.replace('<!--outlet-->', appHtml);
+      const extraProps = { now: new Date().toISOString() };
 
-      res.status(200).set({ 'Content-Type': 'text/html' }).end(html);
+      // Updated render() call
+      const { html: appHtml, title } = await render(page, extraProps);
+
+      let finalHtml = template.replace('<!--outlet-->', appHtml);
+      finalHtml = finalHtml.replace('<title>My App</title>', `<title>${title}</title>`);
+
+      res.status(200).set({ 'Content-Type': 'text/html' }).end(finalHtml);
     } catch (err) {
       console.error(err);
       res.status(500).end(err.message);
