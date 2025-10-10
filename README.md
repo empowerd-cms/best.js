@@ -128,6 +128,73 @@ export default function register(app) {
 }
 ```
 
+## Add pages
+```
+mkdir src/pages
+vim src/pages/about.jsx
+```
+
+about.jsx:
+```
+export default function About() {
+
+  return (
+    <div style={{ margin: '2rem' }}>
+      <h1>About page :)</h1>
+    </div>
+  );
+}
+```
+
+## Add Existing React Modules
+
+Install a React module of choice, ex codemirror:
+```
+npm install @uiw/react-codemirror @codemirror/lang-javascript
+```
+
+```
+vim src/pages/editor.jsx
+```
+
+editor.jsx:
+```
+import React, { useEffect, useState } from 'react';
+
+export default function Editor() {
+  const [isClient, setIsClient] = useState(false);
+  const [CodeMirror, setCodeMirror] = useState(null);
+  const [javascript, setJavascript] = useState(null);
+  const [code, setCode] = useState('// Write JS code here');
+
+  useEffect(() => {
+    setIsClient(true);
+    // Dynamically import CodeMirror on client only
+    import('@uiw/react-codemirror').then(mod => setCodeMirror(() => mod.default));
+    import('@codemirror/lang-javascript').then(mod => setJavascript(() => mod.javascript));
+  }, []);
+
+  if (!isClient || !CodeMirror || !javascript) {
+    return <div>Loading editor...</div>;
+  }
+
+  return (
+    <div style={{ margin: '2rem' }}>
+      <h1>CodeMirror Editor :)</h1>
+      <CodeMirror
+        value={code}
+        extensions={[javascript()]}
+        onChange={setCode}
+        height="400px"
+      />
+      <pre>{code}</pre>
+    </div>
+  );
+}
+
+```
+
+
 ---
 
 ## 6️⃣ Notes
