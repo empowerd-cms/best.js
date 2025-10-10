@@ -10,7 +10,7 @@
 git clone https://github.com/empowerd-cms/best.js
 cd best.js
 bun install # or # npm install 
-npm link
+bun link # or # npm link
 ```
 
 ---
