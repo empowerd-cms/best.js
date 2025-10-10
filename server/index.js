@@ -15,6 +15,10 @@ const __dirname = path.dirname(__filename);
 export async function startDevServer({ root, srcDir, port }) {
   const app = express();
 
+  // ✅ Add body parsers so req.body works
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
+
   const vite = await createViteServer({ server: { middlewareMode: true }, appType: 'custom', root });
   app.use(vite.middlewares);
 
@@ -51,6 +55,10 @@ const { render } = await vite.ssrLoadModule('/src/entry-server.jsx');
 
 export async function startProdServer({ root, srcDir, port }) {
   const app = express();
+
+  // ✅ Add body parsers so req.body works
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
 
   app.use(express.static(path.join(root, 'dist/client'), { index: false }));
 
