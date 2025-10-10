@@ -1,0 +1,20 @@
+{
+  "name": "myviteserver",
+  "version": "1.0.0",
+  "description": "Reusable SSR + Vite + Express server CLI",
+  "type": "module",
+  "bin": {
+    "bestjsserver": "./bin/bestjsserver.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "vite": "^7.1.9",
+    "@vitejs/plugin-react": "^5.0.4",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  }
+}
+
