@@ -4,6 +4,12 @@ import path from 'path';
 import { execSync } from 'child_process';
 import { startDevServer, startProdServer } from '../server/index.js';
 
+import { fileURLToPath } from 'url';
+
+// Fix __dirname in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const cwd = process.cwd();
 
 // --------------------
@@ -70,56 +76,27 @@ if (init) {
   if (!fs.existsSync(srcPath)) fs.mkdirSync(srcPath);
 
 
+
+
+const folderPath = path.join(__dirname, 'default-files');
+
+
+// Read file contents
+const entryClient = fs.readFileSync(path.join(folderPath, 'entry-client.jsx'), 'utf-8');
+const entryServer = fs.readFileSync(path.join(folderPath, 'entry-server.jsx'), 'utf-8');
+
+
   // entry-server.jsx
   
   const entryServerFile = path.join(srcPath, 'entry-server.jsx');
   if (!fs.existsSync(entryServerFile)) {
-    fs.writeFileSync(entryServerFile, `
-  // src/entry-server.jsx
-import { renderToString } from 'react-dom/server';
-
-export async function render(page) {
-  // Dynamically import the page component
-  try {
-    const mod = await import(\`./pages/\${page}.jsx\`);
-    const Page = mod.default;
-    return renderToString(<Page />);
-  } catch (err) {
-    // Fallback if page not found
-    const fallback = await import('./app.jsx');
-    const Fallback = fallback.default;
-    return renderToString(<Fallback />);
-  }
-}
-`);
+    fs.writeFileSync(entryServerFile, entryServer);
 }
 
   // entry-client.jsx
   const entryClientFile = path.join(srcPath, 'entry-client.jsx');
   if (!fs.existsSync(entryClientFile)) {
-    fs.writeFileSync(entryClientFile, `
-  
-  import React from 'react';
-import { hydrateRoot } from 'react-dom/client';
-
-// Dynamically import all pages
-const pages = import.meta.glob('./pages/*.jsx');
-
-// Determine current page from URL
-const path = window.location.pathname.slice(1) || 'index';
-const loader = pages[\`./pages/${path}.jsx\`];
-
-if (loader) {
-  loader().then((mod) => {
-    hydrateRoot(document.getElementById('app'), <mod.default />);
-  });
-} else {
-  // Fallback to App if page not found
-  import('./app.jsx').then((mod) => {
-    hydrateRoot(document.getElementById('app'), <mod.default />);
-  });
-}
-`);
+    fs.writeFileSync(entryClientFile, entryClient);
 }
 
   // app.jsx
