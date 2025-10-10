@@ -9,8 +9,8 @@
 ```bash
 git clone https://github.com/empowerd-cms/best.js
 cd best.js
-bun install # or # npm install 
-bun link # or # npm link
+npm install
+npm link
 ```
 
 ---

@@ -1,5 +1,5 @@
 {
-  "name": "myviteserver",
+  "name": "bestjsserver",
   "version": "1.0.0",
   "description": "Reusable SSR + Vite + Express server CLI",
   "type": "module",
