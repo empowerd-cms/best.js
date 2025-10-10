@@ -18,16 +18,18 @@ npm link
 ## 1️⃣ Initialize a new project
 
 ```bash
-bestjsserver --init
+mkdir bestjs-proj1
+cd bestjs-proj1
+bestjsserver --init # creates /src and vite.config.js + installs dependencies
 ```
 
-This will:
+To be exact, this will:
 
 * Create a minimal `package.json` with dependencies (`react`, `react-dom`, `express`, `vite`, `@vitejs/plugin-react`).
 * Create a `src` folder with `app.jsx`.
 * Create an optional `src/pages/index.jsx`.
 * Create `index.html` and `vite.config.js`.
-* Run `bun install` (or fallback to `npm install`).
+* Installs dependencies as fast as possible with `bun install` (or fallback to `npm install`).
 
 After this, the project is ready to run.
 
