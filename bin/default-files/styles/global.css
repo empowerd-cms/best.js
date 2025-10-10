@@ -1,0 +1,9 @@
+/* global dark style */
+body {
+  background-color: #121212;
+  color: #eee;
+  font-family: sans-serif;
+  margin: 0;
+  padding: 0;
+}
+

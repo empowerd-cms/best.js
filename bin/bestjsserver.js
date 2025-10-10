@@ -74,6 +74,9 @@ if (init) {
   // Create src folder
   const srcPath = path.join(cwd, 'src');
   if (!fs.existsSync(srcPath)) fs.mkdirSync(srcPath);
+  
+  const stylesPath = path.join(cwd, 'src/styles');
+  if (!fs.existsSync(stylesPath)) fs.mkdirSync(stylesPath);
 
 
 
@@ -82,9 +85,17 @@ const folderPath = path.join(__dirname, 'default-files');
 
 
 // Read file contents
+const appJsx = fs.readFileSync(path.join(folderPath, 'app.jsx'), 'utf-8');
 const entryClient = fs.readFileSync(path.join(folderPath, 'entry-client.jsx'), 'utf-8');
 const entryServer = fs.readFileSync(path.join(folderPath, 'entry-server.jsx'), 'utf-8');
 const indexHtml= fs.readFileSync(path.join(folderPath, 'index.html'), 'utf-8');
+const stylesCss= fs.readFileSync(path.join(folderPath, 'styles/global.css'), 'utf-8');
+
+// global.css
+  const stylesCssFile = path.join(srcPath, 'styles/global.css');
+  if (!fs.existsSync(stylesCssFile)) {
+    fs.writeFileSync(stylesCssFile, stylesCss);
+}
 
 
   // entry-server.jsx
@@ -103,24 +114,7 @@ const indexHtml= fs.readFileSync(path.join(folderPath, 'index.html'), 'utf-8');
   // app.jsx
   const appFile = path.join(srcPath, 'app.jsx');
   if (!fs.existsSync(appFile)) {
-    fs.writeFileSync(appFile, `import React, { useState } from 'react';
-
-const App = () => {
-  const [count, setCount] = useState(0);
-  return (
-    <main>
-      <h1>App</h1>
-      <p>Hello SSR + Vite!</p>
-      <div>
-        <div>{count}</div>
-        <button onClick={() => setCount(count + 1)}>Increment</button>
-      </div>
-    </main>
-  );
-};
-
-export default App;
-`);
+    fs.writeFileSync(appFile, appJsx);
   }
 
 
