@@ -5,6 +5,16 @@
 ![Best.JS](image.jpeg)
 
 
+## Quick Comparison VS Next.JS
+| Aspect         | Best.js                            | Next.js                                |
+| -------------- | ---------------------------------- | -------------------------------------- |
+| SSR            | ✅ Simple SSR with Vite + Express   | ✅ Advanced SSR + SSG + ISR             |
+| Routing        | Minimal (`src/pages`)              | App Router with layouts, nested routes |
+| API routes     | Via `/src/api` (Express)           | Built-in `/api` routes                 | 
+| Build          | Vite                               | Turbopack / Webpack                    |
+| Performance    | ⚡ Near instant dev-mode compiling | 🐌 Compiling can take few seconds per page           |
+| Learning curve | 🟢 Extremely easy                  | 🔵 Moderate                            |
+
 
 ---
 
