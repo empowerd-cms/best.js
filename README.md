@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="best-js-text.png" alt="Best JS Text" width="200">
+  <img src="best-js-text2.png" alt="Best JS Text" width="200">
 </p>
 
 
