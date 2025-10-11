@@ -4,8 +4,8 @@
 
 
 <p align="center">
-**Simple React SSR with Vite and Express — zero setup CLI**.
-Made for pure JS or optionally connect with headless CMS's later, such as [empowerd.dev](https://empowerd.dev). 
+<b>Simple React SSR with Vite and Express — zero setup CLI</b>.
+Made for full-stack JS + optionally connect with headless CMS's such as [empowerd.dev](https://empowerd.dev) later. 
 </p>
 
 ![Best.JS](image.jpeg)
