@@ -3,7 +3,6 @@
 </p>
 
 
-# Best.js Server v0.1
 
 **Simple React SSR with Vite and Express — zero setup CLI**. Made for pure JS or optionally connect with headless CMS's later, such as [empowerd.dev](https://empowerd.dev). 
 
