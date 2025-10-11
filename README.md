@@ -4,7 +4,7 @@
 
 
 <p align="center">
-<b>Simple React SSR with Vite and Express — zero setup CLI</b>.<br>Made for full-stack JS + optionally connect with headless CMS's such as <a href="https://empowerd.dev">empowerd.dev</a> later. 
+<b>Simple React SSR with Vite and Express — zero setup CLI</b>.<br>Made for React + full-stack JS + optionally connect with headless CMS's such as <a href="https://empowerd.dev">empowerd.dev</a> later. 
 </p>
 
 ![Best.JS](image.jpeg)
