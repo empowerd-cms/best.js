@@ -1,11 +1,13 @@
 <p align="center">
-  <img src="best-js-text2.png" alt="Best JS Text" width="200">
+  <img src="best-js-icon.png" alt="Best JS Text" width="200">
 </p>
+
 
 
 <p align="center">
 <b>Simple Faster React SSR with Vite and Express — zero setup CLI</b>.<br>Made for React + SEO + optionally connect with headless CMS's such as <a href="https://empowerd.dev">empowerd.dev</a> later. 
 </p>
+
 
 ![Best.JS](image.jpeg)
 
