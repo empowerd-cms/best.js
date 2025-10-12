@@ -85,6 +85,7 @@ const folderPath = path.join(__dirname, 'default-files');
 
 
 // Read file contents
+const viteConfigJs = fs.readFileSync(path.join(folderPath, 'vite.config.js'), 'utf-8');
 const appJsx = fs.readFileSync(path.join(folderPath, 'app.jsx'), 'utf-8');
 const entryClient = fs.readFileSync(path.join(folderPath, 'entry-client.jsx'), 'utf-8');
 const entryServer = fs.readFileSync(path.join(folderPath, 'entry-server.jsx'), 'utf-8');
@@ -128,13 +129,7 @@ const stylesCss= fs.readFileSync(path.join(folderPath, 'styles/global.css'), 'ut
   // vite.config.js (unchanged)
   const viteFile = path.join(cwd, 'vite.config.js');
   if (!fs.existsSync(viteFile)) {
-    fs.writeFileSync(viteFile, `import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-
-export default defineConfig({
-  plugins: [react()],
-});
-`);
+    fs.writeFileSync(viteFile, viteConfigJs);
   }
 
   // Install dependencies
