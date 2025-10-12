@@ -1,15 +1,18 @@
+
 <p align="center">
-  <img src="best-js-icon.png" alt="Best JS Text" width="200">
+  <img src="image.jpeg" alt="Best JS Text" width="500">
 </p>
-
-
 
 <p align="center">
 <b>Simple Faster React SSR with Vite and Express — zero setup CLI</b>.<br>Made for React + SEO + optionally connect with headless CMS's such as <a href="https://empowerd.dev">empowerd.dev</a> later. 
 </p>
 
 
-![Best.JS](image.jpeg)
+<p align="center">
+  <img src="best-js-icon.png" alt="Best JS Text" width="200">
+</p>
+
+
 
 
 ## Quick Comparison VS Next.JS
