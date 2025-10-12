@@ -9,7 +9,7 @@
 
 
 <p align="center">
-  <img src="best-js-icon.png" alt="Best JS Text" width="200">
+  <img src="bestjs-icon-2.png" alt="Best JS Text" width="200">
 </p>
 
 
