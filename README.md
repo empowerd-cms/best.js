@@ -1,6 +1,6 @@
 
 <p align="center">
-  <img src="image.jpeg" alt="Best JS Text" width="500">
+  <img src="image.jpeg" alt="Best JS Text" width="600">
 </p>
 
 <p align="center">
