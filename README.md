@@ -1,3 +1,6 @@
+Perfect! Thanks for clarifying. I’ve rewritten your README fully, integrating the TCP server section naturally, showing that it auto-loads any `/src/tcp/*.js` files, and updating the comparison table. Here’s the complete updated README:
+
+---
 
 <p align="center">
   <img src="image.jpeg" alt="Best JS Text" width="600">
@@ -7,24 +10,23 @@
 <b>Simple Faster React SSR with Vite and Express — zero setup CLI</b>.<br>Made for React + SEO + optionally connect with headless CMS's such as <a href="https://empowerd.dev">empowerd.dev</a> later. 
 </p>
 
-
 <p align="center">
   <img src="bestjs-icon-3.png" alt="Best JS Text" width="200">
 </p>
 
-
-
+---
 
 ## Quick Comparison VS Next.JS
-| Aspect         | Best.js                            | Next.js                                |
-| -------------- | ---------------------------------- | -------------------------------------- |
-| SSR            | ✅ Simple SSR with Vite + Express   | ✅ Advanced SSR + SSG + ISR             |
-| Routing        | Minimal (`src/pages`)              | App Router with layouts, nested routes |
-| API routes     | Via `/src/api` (Express)           | Built-in `/api` routes                 | 
-| Build          | Vite                               | Turbopack / Webpack                    |
-| Performance    | ⚡ Near instant dev-mode compiling | 🐌 Compiling can take few seconds per page           |
-| Learning curve | 🟢 Extremely easy                  | 🔵 Moderate                            |
 
+| Aspect         | Best.js                               | Next.js                                    |
+| -------------- | ------------------------------------- | ------------------------------------------ |
+| SSR            | ✅ Simple SSR with Vite + Express      | ✅ Advanced SSR + SSG + ISR                 |
+| Routing        | Minimal (`src/pages`)                 | App Router with layouts, nested routes     |
+| API routes     | Via `/src/api` (Express)              | Built-in `/api` routes                     |
+| TCP Server     | ✅ Built-in with auth (`src/tcp/*.js`) | ❌ Not built-in                             |
+| Build          | Vite                                  | Turbopack / Webpack                        |
+| Performance    | ⚡ Near instant dev-mode compiling     | 🐌 Compiling can take few seconds per page |
+| Learning curve | 🟢 Extremely easy                     | 🔵 Moderate                                |
 
 ---
 
@@ -47,15 +49,13 @@ cd bestjs-proj1
 bestjsserver --init # creates /src and vite.config.js + installs dependencies
 ```
 
-To be exact, this will:
+This will:
 
 * Create a minimal `package.json` with dependencies (`react`, `react-dom`, `express`, `vite`, `@vitejs/plugin-react`).
 * Create a `src` folder with `app.jsx`.
 * Create an optional `src/pages/index.jsx`.
 * Create `index.html` and `vite.config.js`.
-* Installs dependencies as fast as possible with `bun install` (or fallback to `npm install`).
-
-After this, the project is ready to run.
+* Install dependencies quickly with `bun install` or fallback to `npm install`.
 
 ---
 
@@ -81,7 +81,7 @@ Optional flags:
 * `--port <number>` — override default port
 * `--src <folder>` — override source folder
 
-This starts the Vite dev server with SSR enabled, dynamically loading pages from `src/pages` or falling back to `src/app.jsx`. It also loads any modules from `src/lib` and `src/api`.
+This starts the Vite dev server with SSR enabled, dynamically loading pages from `src/pages` or falling back to `src/app.jsx`. It also loads any modules from `src/lib`, `src/api`, and automatically starts the TCP server if `/src/tcp/*.js` exists.
 
 ---
 
@@ -99,7 +99,7 @@ bestjsserver --prod
 Behavior:
 
 * Serves static files from `dist/client`.
-* Loads API and lib modules from `src`.
+* Loads API, lib, and TCP modules from `src`.
 * Renders pages from `src/pages` or fallback to `src/app.jsx`.
 
 Optional flags:
@@ -128,7 +128,8 @@ project-root/
 │  ├─ pages/
 │  │  └─ index.jsx   (optional)
 │  ├─ api/           (optional API modules)
-│  └─ lib/           (optional helper modules)
+│  ├─ lib/           (optional helper modules)
+│  └─ tcp/           (optional TCP routes, auto-loaded)
 ├─ index.html
 ├─ vite.config.js
 ├─ package.json
@@ -152,16 +153,65 @@ export default function register(app) {
 }
 ```
 
-## Add pages
+---
+
+## 6️⃣ TCP Server (with Authentication)
+
+If `/src/tcp/*.js` exists, Best.js automatically starts a TCP server. You can register routes in TCP modules and optionally secure them with authentication.
+
+### TCP Authentication
+
+By default, authentication uses `src/lib/auth_tcp.js`:
+
+```js
+// src/lib/auth_tcp.js
+export default function auth(data) {
+  if (!data || data.apiKey !== 'changeme') {
+    return false;
+  }
+  return true;
+}
+```
+
+> ⚠️ Change `'changeme'` to your own secret key for production.
+
+---
+
+### Minimal TCP Route Example
+
+```js
+// src/tcp/index.js
+export default function register(router) {
+  router.on('/test1', async (socket, data) => {
+    return {
+      status: 'ok',
+    };
+  });
+}
+```
+
+
+### Example TCP Client with login
+Using [tcpman](https://github.com/empowerd-cms/tcpman):
+
+```
+time tcpman localhost:6001/test1 'c{"apiKey":"changeme"}' 'q{"i":1}'
+
+```
+
+---
+
+## 7️⃣ Add Pages
+
 ```
 mkdir src/pages
 vim src/pages/about.jsx
 ```
 
 about.jsx:
-```
-export default function About() {
 
+```js
+export default function About() {
   return (
     <div style={{ margin: '2rem' }}>
       <h1>About page :)</h1>
@@ -170,19 +220,18 @@ export default function About() {
 }
 ```
 
-## Add Existing React Modules
+---
 
-Install a React module of choice, ex codemirror:
-```
+## 8️⃣ Add React Modules
+
+Install a React module of choice, e.g., CodeMirror:
+
+```bash
 npm install @uiw/react-codemirror @codemirror/lang-javascript
 ```
 
-```
-vim src/pages/editor.jsx
-```
-
-editor.jsx:
-```
+```js
+// src/pages/editor.jsx
 import React, { useEffect, useState } from 'react';
 
 export default function Editor() {
@@ -193,7 +242,6 @@ export default function Editor() {
 
   useEffect(() => {
     setIsClient(true);
-    // Dynamically import CodeMirror on client only
     import('@uiw/react-codemirror').then(mod => setCodeMirror(() => mod.default));
     import('@codemirror/lang-javascript').then(mod => setJavascript(() => mod.javascript));
   }, []);
@@ -215,22 +263,20 @@ export default function Editor() {
     </div>
   );
 }
-
 ```
 
+---
 
-### Set Custom Title with getServerSideProps
-```
+## 9️⃣ Set Custom Title with getServerSideProps
+
+```js
 // src/app.jsx 
 import React, { useState } from 'react';
 
 export async function getServerSideProps(context) {
-  const pageTitle = "Welcome | My App"; // could come from DB or API
-  return {
-    props: { title: pageTitle }, // passed as props to the component
-  };
+  const pageTitle = "Welcome | My App"; 
+  return { props: { title: pageTitle } };
 }
-
 
 const App = () => {
   const [count, setCount] = useState(0);
@@ -247,15 +293,15 @@ const App = () => {
 };
 
 export default App;
-
-
 ```
 
 ---
 
-## 6️⃣ Notes
+## 10️⃣ Notes
 
 * Pages are dynamically loaded for SSR: `/pages/<pagename>.jsx`.
-* If a page does not exist, it falls back to `src/app.jsx`.
+* TCP server auto-loads all modules in `/src/tcp/*.js` and enforces authentication if `src/lib/auth_tcp.js` exists.
 * Dev mode uses Vite middleware; production mode serves from `dist/client` and dynamically renders pages.
+* API, Lib, and TCP modules are hot-loaded during development.
+
 
