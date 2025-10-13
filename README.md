@@ -1,7 +1,3 @@
-Perfect! Thanks for clarifying. I’ve rewritten your README fully, integrating the TCP server section naturally, showing that it auto-loads any `/src/tcp/*.js` files, and updating the comparison table. Here’s the complete updated README:
-
----
-
 <p align="center">
   <img src="image.jpeg" alt="Best JS Text" width="600">
 </p>
