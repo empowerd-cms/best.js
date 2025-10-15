@@ -1,4 +1,5 @@
 
+
 import fs from 'fs';
 import path from 'path';
 import express from 'express';
@@ -13,45 +14,49 @@ const __dirname = path.dirname(__filename);
 /**
  * Setup TCP server with Express-like routing for JSON messages
  */
-async function setupTCPServer(root, srcDir, port = 6001) {
-  const tcpDir = path.join(root, srcDir, 'tcp');
 
-  // Only setup TCP server if tcpDir exists
-  if (!fs.existsSync(tcpDir)) {
-    return null;
+/**
+ * Unified TCP server: handles single-tenant default routes and multi-tenant routes dynamically
+ */
+export async function setupTCPServer(root, srcDir, port = 6001) {
+  const routesMap = {}; // key = 'default' or tenant name -> Map(route -> handler)
+
+  // --- Load default routes ---
+  const defaultTcpDir = path.join(root, srcDir, 'tcp');
+  routesMap.default = new Map();
+
+  if (fs.existsSync(defaultTcpDir)) {
+    const tcpFiles = fs.readdirSync(defaultTcpDir).filter(f => f.endsWith('.js'));
+    for (const file of tcpFiles) {
+      const { default: register } = await import(path.join(defaultTcpDir, file));
+      if (typeof register === 'function') {
+        register({
+          on: (route, handler,systemName='default') => {
+	      console.log(' system name',systemName);
+		  if (!routesMap[systemName]) routesMap[systemName] = new Map();
+            routesMap[systemName].set(route, handler);
+            console.log(`[+] TCP route '${route}' loaded for system=`+systemName);
+          }
+        });
+      }
+    }
   }
 
-  const tcpRoutes = new Map();
 
-  // --- Dynamically load auth module ---
+  // --- Load auth function ---
   const authModulePath = path.join(root, srcDir, 'lib', 'auth_tcp.js');
   let authFn = null;
   if (fs.existsSync(authModulePath)) {
-    const { default: auth } = await import(`${authModulePath}`);
+    const { default: auth } = await import(authModulePath);
     if (typeof auth === 'function') authFn = auth;
   } else {
-	console.log('[!] No auth function found in lib/auth_tcp.js');
-  }
-
-  // --- Load TCP route modules dynamically ---
-  const tcpModules = fs.readdirSync(tcpDir).filter(f => f.endsWith('.js'));
-  for (const modFile of tcpModules) {
-    const { default: register } = await import(path.join(tcpDir, modFile));
-    if (typeof register === 'function') {
-      register({
-        on: (route, handler) => {
-		console.log('[+] TCP route ' + route + ' added from src/tcp/routes/*.js');
-		return tcpRoutes.set(route, handler);
-	}
-      });
-    }
+    console.warn('[!] No auth function found in lib/auth_tcp.js');
   }
 
   // --- Create TCP server ---
   const tcpServer = net.createServer((socket) => {
-    //console.log('New TCP connection');
-
     let buffer = '';
+
     socket.on('data', async (rawData) => {
       buffer += rawData.toString();
 
@@ -59,60 +64,81 @@ async function setupTCPServer(root, srcDir, port = 6001) {
       while ((idx = buffer.indexOf('\n')) >= 0) {
         const msg = buffer.slice(0, idx).trim();
         buffer = buffer.slice(idx + 1);
-
         if (!msg) continue;
 
         try {
           const firstChar = msg[0];
           const jsonPart = msg.slice(1);
-
           let data = {};
-          if (jsonPart.startsWith('{')) {
-            data = JSON.parse(jsonPart);
+          if (jsonPart.startsWith('{')) data = JSON.parse(jsonPart);
+
+          // --- Authentication ---
+          if (firstChar === 'c') {
+            if (!authFn) {
+              socket.write(JSON.stringify({ error: 'No auth function configured' }) + '\n');
+              continue;
+            }
+
+            const authResult = await authFn(data);
+            if (!authResult) {
+              socket.write(JSON.stringify({ error: 'Auth failed' }) + '\n');
+              setTimeout(() => socket.destroy(), 1000);
+              return;
+            }
+
+            if (authResult === true) {
+              // Single-tenant default
+              socket.authenticated = true;
+              socket.system = null;
+              socket.systemRoutes = routesMap.default;
+              socket.write(JSON.stringify({ status: 'ok', type: 'connect' }) + '\n');
+              console.log('[✓] Authenticated default / single-tenant connection');
+            } else if (authResult.system) {
+              // Multi-tenant
+              const tenantRoutes = routesMap[authResult.system];
+              if (!tenantRoutes) {
+                socket.write(JSON.stringify({ error: `No routes found for system '${authResult.system}'` }) + '\n');
+                setTimeout(() => socket.destroy(), 1000);
+                return;
+              }
+
+              socket.authenticated = true;
+              socket.system = authResult.system;
+              socket.systemRoutes = tenantRoutes;
+              socket.auth = authResult;
+
+              socket.write(JSON.stringify({ status: 'ok', type: 'connect', system: authResult.system }) + '\n');
+              console.log(`[✓] Authenticated system '${authResult.system}'`);
+            }
           }
 
-	  if (firstChar === 'c') {
-  // authenticate
-  if (!authFn || !authFn(data)) {
-    const msg = JSON.stringify({ error: 'TCP auth failed, connection closed' }) + '\n';
- 
-    socket.write(msg);
-    //console.log('TCP auth failed, waiting 1s before closing connection');
-
-    // Wait 1 second before destroying the socket to ensure the client receives the message
-    setTimeout(() => {
-      socket.destroy(); // forcibly close after delay
-      //console.log('TCP connection closed after auth failure');
-    }, 1000);
-    return;
-  }
-
-  socket.authenticated = true;
-  socket.auth = data;
-  socket.write(JSON.stringify({ status: 'ok', type: 'connect' }) + '\n');
-
-          } else if (firstChar === 'q') {
-            // require authentication
+          // --- Query handling ---
+          else if (firstChar === 'q') {
             if (!socket.authenticated) {
               socket.write(JSON.stringify({ error: 'Not authenticated' }) + '\n');
               continue;
             }
 
-            const route = data.path;
+            const { path: route } = data;
             if (!route) {
               socket.write(JSON.stringify({ error: 'Missing path' }) + '\n');
               continue;
             }
 
-            const handler = tcpRoutes.get(route);
+            let handler = socket.systemRoutes?.get(route);
+            if (!handler && socket.system) {
+              // fallback to default if tenant route not found
+              handler = routesMap.default.get(route);
+            }
+
             if (!handler) {
-              socket.write(JSON.stringify({ error: `No handler for path "${route}"` }) + '\n');
+              const sys = socket.system || 'default';
+              socket.write(JSON.stringify({ error: `No handler for path "${route}" in system "${sys}"` }) + '\n');
               continue;
             }
 
             const res = await handler(socket, data);
             socket.write(JSON.stringify(res) + '\n');
-
           } else {
             socket.write(JSON.stringify({ error: 'Unknown message type' }) + '\n');
           }
@@ -123,12 +149,8 @@ async function setupTCPServer(root, srcDir, port = 6001) {
       }
     });
 
-    socket.on('end', () => {
-	    // console.log('TCP client disconnected')
-    });
-    socket.on('error', (err) => {
-	    console.error('TCP socket error:', err);
-    });
+    socket.on('end', () => {});
+    socket.on('error', (err) => console.error('TCP socket error:', err.message));
   });
 
   tcpServer.listen(port, () => {
@@ -140,11 +162,18 @@ async function setupTCPServer(root, srcDir, port = 6001) {
 
 
 
-export async function startDevServer({ root, srcDir, port }) {
+export async function startDevServer({ root, srcDir, port,tcp }) {
   const app = express();
 
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
+  
+  await loadModules(path.join(root, srcDir, 'lib'), app);
+  await loadModules(path.join(root, srcDir, 'api'), app);
+  const tcpDir = path.join(root, srcDir, 'tcp');
+  if (fs.existsSync(tcpDir)) {
+    await setupTCPServer(root, srcDir,tcp);
+  }
 
   const vite = await createViteServer({
     server: { middlewareMode: true },
@@ -152,15 +181,9 @@ export async function startDevServer({ root, srcDir, port }) {
     root,
   });
   app.use(vite.middlewares);
+  
 
-  await loadModules(path.join(root, srcDir, 'lib'), app);
-  await loadModules(path.join(root, srcDir, 'api'), app);
 
-  // Only start TCP server if src/tcp exists
-  const tcpDir = path.join(root, srcDir, 'tcp');
-  if (fs.existsSync(tcpDir)) {
-    await setupTCPServer(root, srcDir);
-  }
 
   app.use(async (req, res) => {
     const url = req.originalUrl;
@@ -190,7 +213,7 @@ export async function startDevServer({ root, srcDir, port }) {
   });
 }
 
-export async function startProdServer({ root, srcDir, port }) {
+export async function startProdServer({ root, srcDir, port,tcp }) {
   const app = express();
 
   app.use(express.json());
@@ -199,11 +222,9 @@ export async function startProdServer({ root, srcDir, port }) {
 
   await loadModules(path.join(root, srcDir, 'lib'), app);
   await loadModules(path.join(root, srcDir, 'api'), app);
-
-  // Only start TCP server if src/tcp exists
   const tcpDir = path.join(root, srcDir, 'tcp');
   if (fs.existsSync(tcpDir)) {
-    await setupTCPServer(root, srcDir);
+    await setupTCPServer(root, srcDir,tcp);
   }
 
   app.use(async (req, res) => {
