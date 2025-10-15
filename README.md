@@ -166,6 +166,10 @@ export default function auth(data) {
     return false;
   }
   return true;
+
+ // best.js also supports multi-tenant routes,
+ // so you could also return {system:"systemName"} instead of true/false here,
+ // which then unlock additional routes for 'systemName' (see also tcp route) 
 }
 ```
 
@@ -182,7 +186,7 @@ export default function register(router) {
     return {
       status: 'ok',
     };
-  });
+  }); // optional multi-tenant string parameter 'systemName' is also possible here (see also auth) 
 }
 ```
 
