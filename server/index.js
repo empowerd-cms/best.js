@@ -143,7 +143,8 @@ export async function setupTCPServer(root, srcDir, port = 6001) {
             socket.write(JSON.stringify({ error: 'Unknown message type' }) + '\n');
           }
         } catch (err) {
-          console.error('TCP parse error:', err.message);
+	  console.error(err);
+          console.error('Best.JS TCP parse error:', err.message);
           socket.write(JSON.stringify({ error: 'Invalid JSON or format' }) + '\n');
         }
       }

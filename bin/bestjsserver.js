@@ -34,6 +34,10 @@ for (let i = 0; i < args.length; i++) {
   else if (arg === '--init') init = true;
 }
 
+if(mode=='prod'){
+	process.env.NODE_ENV = 'production';
+}
+
 // --------------------
 // 0️⃣ INIT command
 // --------------------
