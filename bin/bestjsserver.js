@@ -22,6 +22,8 @@ let srcDir = 'src';
 let forceBuild = false;
 let init = false;
 let tcp = 6001;
+let host = 'localhost';
+
 
 for (let i = 0; i < args.length; i++) {
   const arg = args[i];
@@ -30,6 +32,7 @@ for (let i = 0; i < args.length; i++) {
   else if (arg === '--port') port = parseInt(args[i + 1]), i++;
   else if (arg === '--tcp') tcp = parseInt(args[i + 1]), i++;
   else if (arg === '--src') srcDir = args[i + 1], i++;
+  else if (arg === '--host') host = args[i + 1], i++;
   else if (arg === '--build') forceBuild = true;
   else if (arg === '--init') init = true;
 }
@@ -183,8 +186,8 @@ if (mode === 'prod' && (forceBuild || !fs.existsSync(distClient) || !fs.existsSy
 // 3️⃣ Start server
 // --------------------
 if (mode === 'dev') {
-  startDevServer({ root: cwd, srcDir, port,tcp });
+  startDevServer({ root: cwd, srcDir, port,tcp, host });
 } else {
-  startProdServer({ root: cwd, srcDir, port,tcp });
+  startProdServer({ root: cwd, srcDir, port,tcp, host });
 }
 

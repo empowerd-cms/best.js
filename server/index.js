@@ -18,7 +18,7 @@ const __dirname = path.dirname(__filename);
 /**
  * Unified TCP server: handles single-tenant default routes and multi-tenant routes dynamically
  */
-export async function setupTCPServer(root, srcDir, port = 6001) {
+export async function setupTCPServer(root, srcDir, port = 6001,host='localhost') {
   const routesMap = {}; // key = 'default' or tenant name -> Map(route -> handler)
 
   // --- Load default routes ---
@@ -154,7 +154,7 @@ export async function setupTCPServer(root, srcDir, port = 6001) {
     socket.on('error', (err) => console.error('TCP socket error:', err.message));
   });
 
-  tcpServer.listen(port, () => {
+  tcpServer.listen(port,host, () => {
     console.log(`🚀 TCP server running on tcp://localhost:${port}`);
   });
 
@@ -163,7 +163,7 @@ export async function setupTCPServer(root, srcDir, port = 6001) {
 
 
 
-export async function startDevServer({ root, srcDir, port,tcp }) {
+export async function startDevServer({ root, srcDir, port,tcp,host }) {
   const app = express();
 
   app.use(express.json());
@@ -173,7 +173,7 @@ export async function startDevServer({ root, srcDir, port,tcp }) {
   await loadModules(path.join(root, srcDir, 'api'), app);
   const tcpDir = path.join(root, srcDir, 'tcp');
   if (fs.existsSync(tcpDir)) {
-    await setupTCPServer(root, srcDir,tcp);
+    await setupTCPServer(root, srcDir,tcp,host);
   }
 
   const vite = await createViteServer({
@@ -214,7 +214,7 @@ export async function startDevServer({ root, srcDir, port,tcp }) {
   });
 }
 
-export async function startProdServer({ root, srcDir, port,tcp }) {
+export async function startProdServer({ root, srcDir, port,tcp,host }) {
   const app = express();
 
   app.use(express.json());
@@ -225,7 +225,7 @@ export async function startProdServer({ root, srcDir, port,tcp }) {
   await loadModules(path.join(root, srcDir, 'api'), app);
   const tcpDir = path.join(root, srcDir, 'tcp');
   if (fs.existsSync(tcpDir)) {
-    await setupTCPServer(root, srcDir,tcp);
+    await setupTCPServer(root, srcDir,tcp,host);
   }
 
   app.use(async (req, res) => {
