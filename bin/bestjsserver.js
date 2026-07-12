@@ -3,7 +3,10 @@ import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
 import { startDevServer, startProdServer } from '../server/index.js';
-
+import dotenv from 'dotenv';
+dotenv.config({
+  path: new URL('.env', import.meta.url)
+})
 import { fileURLToPath } from 'url';
 
 // Fix __dirname in ES modules
@@ -21,7 +24,6 @@ let port = null;
 let srcDir = 'src';
 let forceBuild = false;
 let init = false;
-let tcp = 6001;
 let host = 'localhost';
 
 
@@ -30,7 +32,6 @@ for (let i = 0; i < args.length; i++) {
   if (arg === '--dev') mode = 'dev';
   else if (arg === '--prod') mode = 'prod';
   else if (arg === '--port') port = parseInt(args[i + 1]), i++;
-  else if (arg === '--tcp') tcp = parseInt(args[i + 1]), i++;
   else if (arg === '--src') srcDir = args[i + 1], i++;
   else if (arg === '--host') host = args[i + 1], i++;
   else if (arg === '--build') forceBuild = true;
@@ -186,8 +187,8 @@ if (mode === 'prod' && (forceBuild || !fs.existsSync(distClient) || !fs.existsSy
 // 3️⃣ Start server
 // --------------------
 if (mode === 'dev') {
-  startDevServer({ root: cwd, srcDir, port,tcp, host });
+  startDevServer({ root: cwd, srcDir, port, host });
 } else {
-  startProdServer({ root: cwd, srcDir, port,tcp, host });
+  startProdServer({ root: cwd, srcDir, port, host });
 }
 
