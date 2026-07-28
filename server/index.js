@@ -19,7 +19,7 @@ export async function startDevServer({ root, srcDir, port,host }) {
 
 
 // Increase request size limit
-app.use(express.json({ limit: '50mb' }));
+app.use(express.json({ limit: '50mb',  type: () => true }));
   app.use(express.urlencoded({ limit: '50mb',extended: true }));
   
 
@@ -81,7 +81,7 @@ export async function startProdServer({ root, srcDir, port,host }) {
 
 
 // Increase request size limit
-app.use(express.json({ limit: '50mb' }));
+app.use(express.json({ limit: '50mb',  type: () => true }));
   app.use(express.urlencoded({ limit: '50mb',extended: true }));
   app.use(express.static(path.join(root, 'dist/client'), { index: false }));
 
