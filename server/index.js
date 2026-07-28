@@ -3,6 +3,7 @@
 import fs from 'fs';
 import path from 'path';
 import express from 'express';
+import cors from "cors";
 import { createServer as createViteServer } from 'vite';
 import { loadModules } from '../utils/loadModules.js';
 import { fileURLToPath } from 'url';
@@ -16,6 +17,12 @@ const __dirname = path.dirname(__filename);
 
 export async function startDevServer({ root, srcDir, port,host }) {
   const app = express();
+
+app.use(
+  cors({
+    origin: process.env.CORS_ORIGIN || "*",
+  })
+);
 
 
 // Increase request size limit
@@ -78,6 +85,13 @@ app.use((req, res, next) => {
 
 export async function startProdServer({ root, srcDir, port,host }) {
   const app = express();
+
+app.use(
+  cors({
+    origin: process.env.CORS_ORIGIN || "*",
+  })
+);
+
 
 
 // Increase request size limit
